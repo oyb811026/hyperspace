@@ -8,7 +8,7 @@ BLUE='\033[0;34m'
 RESET='\033[0m'
 
 # log
-LOG_FILE="/root/script_progress.log"
+LOG_FILE="$HOME/script_progress.log"
 
 # logmessage
 log_message() {
@@ -49,9 +49,9 @@ handle_error() {
 get_private_key() {
     log_message "${CYAN}Prepare private key...${RESET}"
     read -p "Enter private key: " private_key
-    echo -e "$private_key" > /root/key.pem
-    chmod 600 /root/key.pem
-    log_message "${GREEN}Private key has been saved to /root/key.pem and set the correct permissions.${RESET}"
+    echo -e "$private_key" > $HOME/key.pem
+    chmod 600 $HOME/key.pem
+    log_message "${GREEN}Private key has been saved to $HOME/key.pem and set the correct permissions.${RESET}"
 }
 
 # Check and install Docker
@@ -63,7 +63,7 @@ check_and_install_docker() {
             log_message "${RED}Homebrew is not installed. Please install Homebrew first.${RESET}"
             exit 1
         fi
-        retry brew install --cask docker || handle_error "Failed to install Docker."
+        retry arch -arm64 brew install --cask docker || handle_error "Failed to install Docker."
         open /Applications/Docker.app # This will open Docker, as it's a GUI app
         log_message "${GREEN}Docker is installed. Please start Docker from the Applications folder if it does not start automatically.${RESET}"
     else
@@ -74,7 +74,7 @@ check_and_install_docker() {
 # Start Docker container
 start_container() {
     log_message "${BLUE}Starting Docker container...${RESET}"
-    retry docker run -d --name aios-container --restart unless-stopped -v /root:/root kartikhyper/aios /app/aios-cli start || handle_error "Failed to start Docker container. "
+    retry docker run -d --name aios-container --restart unless-stopped -v $HOME:/root kartikhyper/aios /app/aios-cli start || handle_error "Failed to start Docker container. "
     log_message "${GREEN}Docker container started. ${RESET}"
 }
 
@@ -115,7 +115,7 @@ run_infer() {
 # Login to Hive
 hive_login() {
     log_message "${CYAN}Logging in to Hive...${RESET}"
-    docker exec -i aios-container /app/aios-cli hive import-keys /root/key.pem || handle_error "Import key failed. "
+    docker exec -i aios-container /app/aios-cli hive import-keys $HOME/key.pem || handle_error "Import key failed. "
     docker exec -i aios-container /app/aios-cli hive login || handle_error "Hive login failed. "
     docker exec -i aios-container /app/aios-cli hive connect || handle_error "Failed to connect to Hive. "
     log_message "${GREEN}Hive login successful. ${RESET}"
