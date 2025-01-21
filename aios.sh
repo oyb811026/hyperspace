@@ -54,12 +54,21 @@ get_private_key() {
     log_message "${GREEN}Private key has been saved to $HOME/key.pem and set the correct permissions.${RESET}"
 }
 
-# Check if Docker is running
+# Check if Docker is running with a timeout
 check_docker_running() {
+    local timeout=300  # 5 minutes timeout
+    local elapsed=0
+    local interval=10  # Check every 10 seconds
     log_message "${BLUE}Checking if Docker is running...${RESET}"
-    until docker info; do
+
+    while ! docker info; do
         log_message "${RED}Docker is not running; waiting to start...${RESET}"
-        sleep 10
+        sleep $interval
+        elapsed=$((elapsed + interval))
+        if (( elapsed >= timeout )); then
+            log_message "${RED}Timeout waiting for Docker to start. Exiting...${RESET}"
+            exit 1
+        fi
     done
     log_message "${GREEN}Docker is up and running.${RESET}"
 }
